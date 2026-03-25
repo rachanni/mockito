@@ -1,0 +1,1745 @@
+From 72d3f4ccbf3f97d3088df682d16b65674c160ae8 Mon Sep 17 00:00:00 2001
+From: "raviprabhat.tcs" <developer1-tc@uidai.net.in>
+Date: Wed, 25 Mar 2026 10:47:10 +0530
+Subject: [PATCH] 1. Unit testing without using Mockito
+
+---
+ .gitattributes                                |   2 +
+ .gitignore                                    |  33 ++
+ .mvn/wrapper/maven-wrapper.properties         |   3 +
+ mvnw                                          | 295 ++++++++++++++++++
+ mvnw.cmd                                      | 189 +++++++++++
+ pom.xml                                       |  71 +++++
+ .../mockito/junit/JunitApplication.java       |  14 +
+ .../hubberspot/mockito/junit/dummy/Book.java  |  52 +++
+ .../mockito/junit/dummy/BookRepository.java   |   9 +
+ .../mockito/junit/dummy/BookService.java      |  35 +++
+ .../mockito/junit/dummy/EmailService.java     |   6 +
+ .../hubberspot/mockito/junit/fake/Book.java   |  52 +++
+ .../mockito/junit/fake/BookRepository.java    |   9 +
+ .../mockito/junit/fake/BookService.java       |  27 ++
+ .../hubberspot/mockito/junit/mock/Book.java   |  52 +++
+ .../mockito/junit/mock/BookRepository.java    |   7 +
+ .../mockito/junit/mock/BookService.java       |  37 +++
+ .../hubberspot/mockito/junit/spy/Book.java    |  52 +++
+ .../mockito/junit/spy/BookRepository.java     |   9 +
+ .../mockito/junit/spy/BookService.java        |  37 +++
+ .../hubberspot/mockito/junit/stub/Book.java   |  52 +++
+ .../mockito/junit/stub/BookRepository.java    |  11 +
+ .../mockito/junit/stub/BookService.java       |  44 +++
+ src/main/resources/application.properties     |   1 +
+ .../mockito/junit/JunitApplicationTests.java  |  13 +
+ .../junit/dummy/DummyEmailService.java        |  11 +
+ .../mockito/junit/dummy/DummyTest.java        |  35 +++
+ .../junit/dummy/FakeBookRepository.java       |  34 ++
+ .../junit/fake/FakeBookRepository.java        |  29 ++
+ .../mockito/junit/fake/FakeTest.java          |  40 +++
+ .../junit/mock/BookRepositoryMock.java        |  30 ++
+ .../mockito/junit/mock/MockTest.java          |  33 ++
+ .../mockito/junit/spy/BookRepositorySpy.java  |  29 ++
+ .../hubberspot/mockito/junit/spy/SpyTest.java |  39 +++
+ .../junit/stub/BookRepositoryStub.java        |  26 ++
+ .../mockito/junit/stub/StubTest.java          |  28 ++
+ 36 files changed, 1446 insertions(+)
+ create mode 100644 .gitattributes
+ create mode 100644 .gitignore
+ create mode 100644 .mvn/wrapper/maven-wrapper.properties
+ create mode 100644 mvnw
+ create mode 100644 mvnw.cmd
+ create mode 100644 pom.xml
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/JunitApplication.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/dummy/Book.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/dummy/BookRepository.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/dummy/BookService.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/dummy/EmailService.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/fake/Book.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/fake/BookRepository.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/fake/BookService.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/mock/Book.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/mock/BookRepository.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/mock/BookService.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/spy/Book.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/spy/BookRepository.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/spy/BookService.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/stub/Book.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/stub/BookRepository.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/stub/BookService.java
+ create mode 100644 src/main/resources/application.properties
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/JunitApplicationTests.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/dummy/DummyEmailService.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/dummy/DummyTest.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/dummy/FakeBookRepository.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/fake/FakeBookRepository.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/fake/FakeTest.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/mock/BookRepositoryMock.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/mock/MockTest.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/spy/BookRepositorySpy.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/spy/SpyTest.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/stub/BookRepositoryStub.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/stub/StubTest.java
+
+diff --git a/.gitattributes b/.gitattributes
+new file mode 100644
+index 0000000..3b41682
+--- /dev/null
++++ b/.gitattributes
+@@ -0,0 +1,2 @@
++/mvnw text eol=lf
++*.cmd text eol=crlf
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..667aaef
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,33 @@
++HELP.md
++target/
++.mvn/wrapper/maven-wrapper.jar
++!**/src/main/**/target/
++!**/src/test/**/target/
++
++### STS ###
++.apt_generated
++.classpath
++.factorypath
++.project
++.settings
++.springBeans
++.sts4-cache
++
++### IntelliJ IDEA ###
++.idea
++*.iws
++*.iml
++*.ipr
++
++### NetBeans ###
++/nbproject/private/
++/nbbuild/
++/dist/
++/nbdist/
++/.nb-gradle/
++build/
++!**/src/main/**/build/
++!**/src/test/**/build/
++
++### VS Code ###
++.vscode/
+diff --git a/.mvn/wrapper/maven-wrapper.properties b/.mvn/wrapper/maven-wrapper.properties
+new file mode 100644
+index 0000000..c595b00
+--- /dev/null
++++ b/.mvn/wrapper/maven-wrapper.properties
+@@ -0,0 +1,3 @@
++wrapperVersion=3.3.4
++distributionType=only-script
++distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.14/apache-maven-3.9.14-bin.zip
+diff --git a/mvnw b/mvnw
+new file mode 100644
+index 0000000..bd8896b
+--- /dev/null
++++ b/mvnw
+@@ -0,0 +1,295 @@
++#!/bin/sh
++# ----------------------------------------------------------------------------
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#    http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++# ----------------------------------------------------------------------------
++
++# ----------------------------------------------------------------------------
++# Apache Maven Wrapper startup batch script, version 3.3.4
++#
++# Optional ENV vars
++# -----------------
++#   JAVA_HOME - location of a JDK home dir, required when download maven via java source
++#   MVNW_REPOURL - repo url base for downloading maven distribution
++#   MVNW_USERNAME/MVNW_PASSWORD - user and password for downloading maven
++#   MVNW_VERBOSE - true: enable verbose log; debug: trace the mvnw script; others: silence the output
++# ----------------------------------------------------------------------------
++
++set -euf
++[ "${MVNW_VERBOSE-}" != debug ] || set -x
++
++# OS specific support.
++native_path() { printf %s\\n "$1"; }
++case "$(uname)" in
++CYGWIN* | MINGW*)
++  [ -z "${JAVA_HOME-}" ] || JAVA_HOME="$(cygpath --unix "$JAVA_HOME")"
++  native_path() { cygpath --path --windows "$1"; }
++  ;;
++esac
++
++# set JAVACMD and JAVACCMD
++set_java_home() {
++  # For Cygwin and MinGW, ensure paths are in Unix format before anything is touched
++  if [ -n "${JAVA_HOME-}" ]; then
++    if [ -x "$JAVA_HOME/jre/sh/java" ]; then
++      # IBM's JDK on AIX uses strange locations for the executables
++      JAVACMD="$JAVA_HOME/jre/sh/java"
++      JAVACCMD="$JAVA_HOME/jre/sh/javac"
++    else
++      JAVACMD="$JAVA_HOME/bin/java"
++      JAVACCMD="$JAVA_HOME/bin/javac"
++
++      if [ ! -x "$JAVACMD" ] || [ ! -x "$JAVACCMD" ]; then
++        echo "The JAVA_HOME environment variable is not defined correctly, so mvnw cannot run." >&2
++        echo "JAVA_HOME is set to \"$JAVA_HOME\", but \"\$JAVA_HOME/bin/java\" or \"\$JAVA_HOME/bin/javac\" does not exist." >&2
++        return 1
++      fi
++    fi
++  else
++    JAVACMD="$(
++      'set' +e
++      'unset' -f command 2>/dev/null
++      'command' -v java
++    )" || :
++    JAVACCMD="$(
++      'set' +e
++      'unset' -f command 2>/dev/null
++      'command' -v javac
++    )" || :
++
++    if [ ! -x "${JAVACMD-}" ] || [ ! -x "${JAVACCMD-}" ]; then
++      echo "The java/javac command does not exist in PATH nor is JAVA_HOME set, so mvnw cannot run." >&2
++      return 1
++    fi
++  fi
++}
++
++# hash string like Java String::hashCode
++hash_string() {
++  str="${1:-}" h=0
++  while [ -n "$str" ]; do
++    char="${str%"${str#?}"}"
++    h=$(((h * 31 + $(LC_CTYPE=C printf %d "'$char")) % 4294967296))
++    str="${str#?}"
++  done
++  printf %x\\n $h
++}
++
++verbose() { :; }
++[ "${MVNW_VERBOSE-}" != true ] || verbose() { printf %s\\n "${1-}"; }
++
++die() {
++  printf %s\\n "$1" >&2
++  exit 1
++}
++
++trim() {
++  # MWRAPPER-139:
++  #   Trims trailing and leading whitespace, carriage returns, tabs, and linefeeds.
++  #   Needed for removing poorly interpreted newline sequences when running in more
++  #   exotic environments such as mingw bash on Windows.
++  printf "%s" "${1}" | tr -d '[:space:]'
++}
++
++scriptDir="$(dirname "$0")"
++scriptName="$(basename "$0")"
++
++# parse distributionUrl and optional distributionSha256Sum, requires .mvn/wrapper/maven-wrapper.properties
++while IFS="=" read -r key value; do
++  case "${key-}" in
++  distributionUrl) distributionUrl=$(trim "${value-}") ;;
++  distributionSha256Sum) distributionSha256Sum=$(trim "${value-}") ;;
++  esac
++done <"$scriptDir/.mvn/wrapper/maven-wrapper.properties"
++[ -n "${distributionUrl-}" ] || die "cannot read distributionUrl property in $scriptDir/.mvn/wrapper/maven-wrapper.properties"
++
++case "${distributionUrl##*/}" in
++maven-mvnd-*bin.*)
++  MVN_CMD=mvnd.sh _MVNW_REPO_PATTERN=/maven/mvnd/
++  case "${PROCESSOR_ARCHITECTURE-}${PROCESSOR_ARCHITEW6432-}:$(uname -a)" in
++  *AMD64:CYGWIN* | *AMD64:MINGW*) distributionPlatform=windows-amd64 ;;
++  :Darwin*x86_64) distributionPlatform=darwin-amd64 ;;
++  :Darwin*arm64) distributionPlatform=darwin-aarch64 ;;
++  :Linux*x86_64*) distributionPlatform=linux-amd64 ;;
++  *)
++    echo "Cannot detect native platform for mvnd on $(uname)-$(uname -m), use pure java version" >&2
++    distributionPlatform=linux-amd64
++    ;;
++  esac
++  distributionUrl="${distributionUrl%-bin.*}-$distributionPlatform.zip"
++  ;;
++maven-mvnd-*) MVN_CMD=mvnd.sh _MVNW_REPO_PATTERN=/maven/mvnd/ ;;
++*) MVN_CMD="mvn${scriptName#mvnw}" _MVNW_REPO_PATTERN=/org/apache/maven/ ;;
++esac
++
++# apply MVNW_REPOURL and calculate MAVEN_HOME
++# maven home pattern: ~/.m2/wrapper/dists/{apache-maven-<version>,maven-mvnd-<version>-<platform>}/<hash>
++[ -z "${MVNW_REPOURL-}" ] || distributionUrl="$MVNW_REPOURL$_MVNW_REPO_PATTERN${distributionUrl#*"$_MVNW_REPO_PATTERN"}"
++distributionUrlName="${distributionUrl##*/}"
++distributionUrlNameMain="${distributionUrlName%.*}"
++distributionUrlNameMain="${distributionUrlNameMain%-bin}"
++MAVEN_USER_HOME="${MAVEN_USER_HOME:-${HOME}/.m2}"
++MAVEN_HOME="${MAVEN_USER_HOME}/wrapper/dists/${distributionUrlNameMain-}/$(hash_string "$distributionUrl")"
++
++exec_maven() {
++  unset MVNW_VERBOSE MVNW_USERNAME MVNW_PASSWORD MVNW_REPOURL || :
++  exec "$MAVEN_HOME/bin/$MVN_CMD" "$@" || die "cannot exec $MAVEN_HOME/bin/$MVN_CMD"
++}
++
++if [ -d "$MAVEN_HOME" ]; then
++  verbose "found existing MAVEN_HOME at $MAVEN_HOME"
++  exec_maven "$@"
++fi
++
++case "${distributionUrl-}" in
++*?-bin.zip | *?maven-mvnd-?*-?*.zip) ;;
++*) die "distributionUrl is not valid, must match *-bin.zip or maven-mvnd-*.zip, but found '${distributionUrl-}'" ;;
++esac
++
++# prepare tmp dir
++if TMP_DOWNLOAD_DIR="$(mktemp -d)" && [ -d "$TMP_DOWNLOAD_DIR" ]; then
++  clean() { rm -rf -- "$TMP_DOWNLOAD_DIR"; }
++  trap clean HUP INT TERM EXIT
++else
++  die "cannot create temp dir"
++fi
++
++mkdir -p -- "${MAVEN_HOME%/*}"
++
++# Download and Install Apache Maven
++verbose "Couldn't find MAVEN_HOME, downloading and installing it ..."
++verbose "Downloading from: $distributionUrl"
++verbose "Downloading to: $TMP_DOWNLOAD_DIR/$distributionUrlName"
++
++# select .zip or .tar.gz
++if ! command -v unzip >/dev/null; then
++  distributionUrl="${distributionUrl%.zip}.tar.gz"
++  distributionUrlName="${distributionUrl##*/}"
++fi
++
++# verbose opt
++__MVNW_QUIET_WGET=--quiet __MVNW_QUIET_CURL=--silent __MVNW_QUIET_UNZIP=-q __MVNW_QUIET_TAR=''
++[ "${MVNW_VERBOSE-}" != true ] || __MVNW_QUIET_WGET='' __MVNW_QUIET_CURL='' __MVNW_QUIET_UNZIP='' __MVNW_QUIET_TAR=v
++
++# normalize http auth
++case "${MVNW_PASSWORD:+has-password}" in
++'') MVNW_USERNAME='' MVNW_PASSWORD='' ;;
++has-password) [ -n "${MVNW_USERNAME-}" ] || MVNW_USERNAME='' MVNW_PASSWORD='' ;;
++esac
++
++if [ -z "${MVNW_USERNAME-}" ] && command -v wget >/dev/null; then
++  verbose "Found wget ... using wget"
++  wget ${__MVNW_QUIET_WGET:+"$__MVNW_QUIET_WGET"} "$distributionUrl" -O "$TMP_DOWNLOAD_DIR/$distributionUrlName" || die "wget: Failed to fetch $distributionUrl"
++elif [ -z "${MVNW_USERNAME-}" ] && command -v curl >/dev/null; then
++  verbose "Found curl ... using curl"
++  curl ${__MVNW_QUIET_CURL:+"$__MVNW_QUIET_CURL"} -f -L -o "$TMP_DOWNLOAD_DIR/$distributionUrlName" "$distributionUrl" || die "curl: Failed to fetch $distributionUrl"
++elif set_java_home; then
++  verbose "Falling back to use Java to download"
++  javaSource="$TMP_DOWNLOAD_DIR/Downloader.java"
++  targetZip="$TMP_DOWNLOAD_DIR/$distributionUrlName"
++  cat >"$javaSource" <<-END
++	public class Downloader extends java.net.Authenticator
++	{
++	  protected java.net.PasswordAuthentication getPasswordAuthentication()
++	  {
++	    return new java.net.PasswordAuthentication( System.getenv( "MVNW_USERNAME" ), System.getenv( "MVNW_PASSWORD" ).toCharArray() );
++	  }
++	  public static void main( String[] args ) throws Exception
++	  {
++	    setDefault( new Downloader() );
++	    java.nio.file.Files.copy( java.net.URI.create( args[0] ).toURL().openStream(), java.nio.file.Paths.get( args[1] ).toAbsolutePath().normalize() );
++	  }
++	}
++	END
++  # For Cygwin/MinGW, switch paths to Windows format before running javac and java
++  verbose " - Compiling Downloader.java ..."
++  "$(native_path "$JAVACCMD")" "$(native_path "$javaSource")" || die "Failed to compile Downloader.java"
++  verbose " - Running Downloader.java ..."
++  "$(native_path "$JAVACMD")" -cp "$(native_path "$TMP_DOWNLOAD_DIR")" Downloader "$distributionUrl" "$(native_path "$targetZip")"
++fi
++
++# If specified, validate the SHA-256 sum of the Maven distribution zip file
++if [ -n "${distributionSha256Sum-}" ]; then
++  distributionSha256Result=false
++  if [ "$MVN_CMD" = mvnd.sh ]; then
++    echo "Checksum validation is not supported for maven-mvnd." >&2
++    echo "Please disable validation by removing 'distributionSha256Sum' from your maven-wrapper.properties." >&2
++    exit 1
++  elif command -v sha256sum >/dev/null; then
++    if echo "$distributionSha256Sum  $TMP_DOWNLOAD_DIR/$distributionUrlName" | sha256sum -c - >/dev/null 2>&1; then
++      distributionSha256Result=true
++    fi
++  elif command -v shasum >/dev/null; then
++    if echo "$distributionSha256Sum  $TMP_DOWNLOAD_DIR/$distributionUrlName" | shasum -a 256 -c >/dev/null 2>&1; then
++      distributionSha256Result=true
++    fi
++  else
++    echo "Checksum validation was requested but neither 'sha256sum' or 'shasum' are available." >&2
++    echo "Please install either command, or disable validation by removing 'distributionSha256Sum' from your maven-wrapper.properties." >&2
++    exit 1
++  fi
++  if [ $distributionSha256Result = false ]; then
++    echo "Error: Failed to validate Maven distribution SHA-256, your Maven distribution might be compromised." >&2
++    echo "If you updated your Maven version, you need to update the specified distributionSha256Sum property." >&2
++    exit 1
++  fi
++fi
++
++# unzip and move
++if command -v unzip >/dev/null; then
++  unzip ${__MVNW_QUIET_UNZIP:+"$__MVNW_QUIET_UNZIP"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -d "$TMP_DOWNLOAD_DIR" || die "failed to unzip"
++else
++  tar xzf${__MVNW_QUIET_TAR:+"$__MVNW_QUIET_TAR"} "$TMP_DOWNLOAD_DIR/$distributionUrlName" -C "$TMP_DOWNLOAD_DIR" || die "failed to untar"
++fi
++
++# Find the actual extracted directory name (handles snapshots where filename != directory name)
++actualDistributionDir=""
++
++# First try the expected directory name (for regular distributions)
++if [ -d "$TMP_DOWNLOAD_DIR/$distributionUrlNameMain" ]; then
++  if [ -f "$TMP_DOWNLOAD_DIR/$distributionUrlNameMain/bin/$MVN_CMD" ]; then
++    actualDistributionDir="$distributionUrlNameMain"
++  fi
++fi
++
++# If not found, search for any directory with the Maven executable (for snapshots)
++if [ -z "$actualDistributionDir" ]; then
++  # enable globbing to iterate over items
++  set +f
++  for dir in "$TMP_DOWNLOAD_DIR"/*; do
++    if [ -d "$dir" ]; then
++      if [ -f "$dir/bin/$MVN_CMD" ]; then
++        actualDistributionDir="$(basename "$dir")"
++        break
++      fi
++    fi
++  done
++  set -f
++fi
++
++if [ -z "$actualDistributionDir" ]; then
++  verbose "Contents of $TMP_DOWNLOAD_DIR:"
++  verbose "$(ls -la "$TMP_DOWNLOAD_DIR")"
++  die "Could not find Maven distribution directory in extracted archive"
++fi
++
++verbose "Found extracted Maven distribution directory: $actualDistributionDir"
++printf %s\\n "$distributionUrl" >"$TMP_DOWNLOAD_DIR/$actualDistributionDir/mvnw.url"
++mv -- "$TMP_DOWNLOAD_DIR/$actualDistributionDir" "$MAVEN_HOME" || [ -d "$MAVEN_HOME" ] || die "fail to move MAVEN_HOME"
++
++clean || :
++exec_maven "$@"
+diff --git a/mvnw.cmd b/mvnw.cmd
+new file mode 100644
+index 0000000..92450f9
+--- /dev/null
++++ b/mvnw.cmd
+@@ -0,0 +1,189 @@
++<# : batch portion
++@REM ----------------------------------------------------------------------------
++@REM Licensed to the Apache Software Foundation (ASF) under one
++@REM or more contributor license agreements.  See the NOTICE file
++@REM distributed with this work for additional information
++@REM regarding copyright ownership.  The ASF licenses this file
++@REM to you under the Apache License, Version 2.0 (the
++@REM "License"); you may not use this file except in compliance
++@REM with the License.  You may obtain a copy of the License at
++@REM
++@REM    http://www.apache.org/licenses/LICENSE-2.0
++@REM
++@REM Unless required by applicable law or agreed to in writing,
++@REM software distributed under the License is distributed on an
++@REM "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++@REM KIND, either express or implied.  See the License for the
++@REM specific language governing permissions and limitations
++@REM under the License.
++@REM ----------------------------------------------------------------------------
++
++@REM ----------------------------------------------------------------------------
++@REM Apache Maven Wrapper startup batch script, version 3.3.4
++@REM
++@REM Optional ENV vars
++@REM   MVNW_REPOURL - repo url base for downloading maven distribution
++@REM   MVNW_USERNAME/MVNW_PASSWORD - user and password for downloading maven
++@REM   MVNW_VERBOSE - true: enable verbose log; others: silence the output
++@REM ----------------------------------------------------------------------------
++
++@IF "%__MVNW_ARG0_NAME__%"=="" (SET __MVNW_ARG0_NAME__=%~nx0)
++@SET __MVNW_CMD__=
++@SET __MVNW_ERROR__=
++@SET __MVNW_PSMODULEP_SAVE=%PSModulePath%
++@SET PSModulePath=
++@FOR /F "usebackq tokens=1* delims==" %%A IN (`powershell -noprofile "& {$scriptDir='%~dp0'; $script='%__MVNW_ARG0_NAME__%'; icm -ScriptBlock ([Scriptblock]::Create((Get-Content -Raw '%~f0'))) -NoNewScope}"`) DO @(
++  IF "%%A"=="MVN_CMD" (set __MVNW_CMD__=%%B) ELSE IF "%%B"=="" (echo %%A) ELSE (echo %%A=%%B)
++)
++@SET PSModulePath=%__MVNW_PSMODULEP_SAVE%
++@SET __MVNW_PSMODULEP_SAVE=
++@SET __MVNW_ARG0_NAME__=
++@SET MVNW_USERNAME=
++@SET MVNW_PASSWORD=
++@IF NOT "%__MVNW_CMD__%"=="" ("%__MVNW_CMD__%" %*)
++@echo Cannot start maven from wrapper >&2 && exit /b 1
++@GOTO :EOF
++: end batch / begin powershell #>
++
++$ErrorActionPreference = "Stop"
++if ($env:MVNW_VERBOSE -eq "true") {
++  $VerbosePreference = "Continue"
++}
++
++# calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties
++$distributionUrl = (Get-Content -Raw "$scriptDir/.mvn/wrapper/maven-wrapper.properties" | ConvertFrom-StringData).distributionUrl
++if (!$distributionUrl) {
++  Write-Error "cannot read distributionUrl property in $scriptDir/.mvn/wrapper/maven-wrapper.properties"
++}
++
++switch -wildcard -casesensitive ( $($distributionUrl -replace '^.*/','') ) {
++  "maven-mvnd-*" {
++    $USE_MVND = $true
++    $distributionUrl = $distributionUrl -replace '-bin\.[^.]*$',"-windows-amd64.zip"
++    $MVN_CMD = "mvnd.cmd"
++    break
++  }
++  default {
++    $USE_MVND = $false
++    $MVN_CMD = $script -replace '^mvnw','mvn'
++    break
++  }
++}
++
++# apply MVNW_REPOURL and calculate MAVEN_HOME
++# maven home pattern: ~/.m2/wrapper/dists/{apache-maven-<version>,maven-mvnd-<version>-<platform>}/<hash>
++if ($env:MVNW_REPOURL) {
++  $MVNW_REPO_PATTERN = if ($USE_MVND -eq $False) { "/org/apache/maven/" } else { "/maven/mvnd/" }
++  $distributionUrl = "$env:MVNW_REPOURL$MVNW_REPO_PATTERN$($distributionUrl -replace "^.*$MVNW_REPO_PATTERN",'')"
++}
++$distributionUrlName = $distributionUrl -replace '^.*/',''
++$distributionUrlNameMain = $distributionUrlName -replace '\.[^.]*$','' -replace '-bin$',''
++
++$MAVEN_M2_PATH = "$HOME/.m2"
++if ($env:MAVEN_USER_HOME) {
++  $MAVEN_M2_PATH = "$env:MAVEN_USER_HOME"
++}
++
++if (-not (Test-Path -Path $MAVEN_M2_PATH)) {
++    New-Item -Path $MAVEN_M2_PATH -ItemType Directory | Out-Null
++}
++
++$MAVEN_WRAPPER_DISTS = $null
++if ((Get-Item $MAVEN_M2_PATH).Target[0] -eq $null) {
++  $MAVEN_WRAPPER_DISTS = "$MAVEN_M2_PATH/wrapper/dists"
++} else {
++  $MAVEN_WRAPPER_DISTS = (Get-Item $MAVEN_M2_PATH).Target[0] + "/wrapper/dists"
++}
++
++$MAVEN_HOME_PARENT = "$MAVEN_WRAPPER_DISTS/$distributionUrlNameMain"
++$MAVEN_HOME_NAME = ([System.Security.Cryptography.SHA256]::Create().ComputeHash([byte[]][char[]]$distributionUrl) | ForEach-Object {$_.ToString("x2")}) -join ''
++$MAVEN_HOME = "$MAVEN_HOME_PARENT/$MAVEN_HOME_NAME"
++
++if (Test-Path -Path "$MAVEN_HOME" -PathType Container) {
++  Write-Verbose "found existing MAVEN_HOME at $MAVEN_HOME"
++  Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
++  exit $?
++}
++
++if (! $distributionUrlNameMain -or ($distributionUrlName -eq $distributionUrlNameMain)) {
++  Write-Error "distributionUrl is not valid, must end with *-bin.zip, but found $distributionUrl"
++}
++
++# prepare tmp dir
++$TMP_DOWNLOAD_DIR_HOLDER = New-TemporaryFile
++$TMP_DOWNLOAD_DIR = New-Item -Itemtype Directory -Path "$TMP_DOWNLOAD_DIR_HOLDER.dir"
++$TMP_DOWNLOAD_DIR_HOLDER.Delete() | Out-Null
++trap {
++  if ($TMP_DOWNLOAD_DIR.Exists) {
++    try { Remove-Item $TMP_DOWNLOAD_DIR -Recurse -Force | Out-Null }
++    catch { Write-Warning "Cannot remove $TMP_DOWNLOAD_DIR" }
++  }
++}
++
++New-Item -Itemtype Directory -Path "$MAVEN_HOME_PARENT" -Force | Out-Null
++
++# Download and Install Apache Maven
++Write-Verbose "Couldn't find MAVEN_HOME, downloading and installing it ..."
++Write-Verbose "Downloading from: $distributionUrl"
++Write-Verbose "Downloading to: $TMP_DOWNLOAD_DIR/$distributionUrlName"
++
++$webclient = New-Object System.Net.WebClient
++if ($env:MVNW_USERNAME -and $env:MVNW_PASSWORD) {
++  $webclient.Credentials = New-Object System.Net.NetworkCredential($env:MVNW_USERNAME, $env:MVNW_PASSWORD)
++}
++[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
++$webclient.DownloadFile($distributionUrl, "$TMP_DOWNLOAD_DIR/$distributionUrlName") | Out-Null
++
++# If specified, validate the SHA-256 sum of the Maven distribution zip file
++$distributionSha256Sum = (Get-Content -Raw "$scriptDir/.mvn/wrapper/maven-wrapper.properties" | ConvertFrom-StringData).distributionSha256Sum
++if ($distributionSha256Sum) {
++  if ($USE_MVND) {
++    Write-Error "Checksum validation is not supported for maven-mvnd. `nPlease disable validation by removing 'distributionSha256Sum' from your maven-wrapper.properties."
++  }
++  Import-Module $PSHOME\Modules\Microsoft.PowerShell.Utility -Function Get-FileHash
++  if ((Get-FileHash "$TMP_DOWNLOAD_DIR/$distributionUrlName" -Algorithm SHA256).Hash.ToLower() -ne $distributionSha256Sum) {
++    Write-Error "Error: Failed to validate Maven distribution SHA-256, your Maven distribution might be compromised. If you updated your Maven version, you need to update the specified distributionSha256Sum property."
++  }
++}
++
++# unzip and move
++Expand-Archive "$TMP_DOWNLOAD_DIR/$distributionUrlName" -DestinationPath "$TMP_DOWNLOAD_DIR" | Out-Null
++
++# Find the actual extracted directory name (handles snapshots where filename != directory name)
++$actualDistributionDir = ""
++
++# First try the expected directory name (for regular distributions)
++$expectedPath = Join-Path "$TMP_DOWNLOAD_DIR" "$distributionUrlNameMain"
++$expectedMvnPath = Join-Path "$expectedPath" "bin/$MVN_CMD"
++if ((Test-Path -Path $expectedPath -PathType Container) -and (Test-Path -Path $expectedMvnPath -PathType Leaf)) {
++  $actualDistributionDir = $distributionUrlNameMain
++}
++
++# If not found, search for any directory with the Maven executable (for snapshots)
++if (!$actualDistributionDir) {
++  Get-ChildItem -Path "$TMP_DOWNLOAD_DIR" -Directory | ForEach-Object {
++    $testPath = Join-Path $_.FullName "bin/$MVN_CMD"
++    if (Test-Path -Path $testPath -PathType Leaf) {
++      $actualDistributionDir = $_.Name
++    }
++  }
++}
++
++if (!$actualDistributionDir) {
++  Write-Error "Could not find Maven distribution directory in extracted archive"
++}
++
++Write-Verbose "Found extracted Maven distribution directory: $actualDistributionDir"
++Rename-Item -Path "$TMP_DOWNLOAD_DIR/$actualDistributionDir" -NewName $MAVEN_HOME_NAME | Out-Null
++try {
++  Move-Item -Path "$TMP_DOWNLOAD_DIR/$MAVEN_HOME_NAME" -Destination $MAVEN_HOME_PARENT | Out-Null
++} catch {
++  if (! (Test-Path -Path "$MAVEN_HOME" -PathType Container)) {
++    Write-Error "fail to move MAVEN_HOME"
++  }
++} finally {
++  try { Remove-Item $TMP_DOWNLOAD_DIR -Recurse -Force | Out-Null }
++  catch { Write-Warning "Cannot remove $TMP_DOWNLOAD_DIR" }
++}
++
++Write-Output "MVN_CMD=$MAVEN_HOME/bin/$MVN_CMD"
+diff --git a/pom.xml b/pom.xml
+new file mode 100644
+index 0000000..aead9bd
+--- /dev/null
++++ b/pom.xml
+@@ -0,0 +1,71 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
++	<modelVersion>4.0.0</modelVersion>
++	<parent>
++		<groupId>org.springframework.boot</groupId>
++		<artifactId>spring-boot-starter-parent</artifactId>
++		<version>3.5.12</version>
++		<relativePath/> <!-- lookup parent from repository -->
++	</parent>
++	<groupId>com.hubberspot.mockito</groupId>
++	<artifactId>junit</artifactId>
++	<version>0.0.1-SNAPSHOT</version>
++	<name/>
++	<description/>
++	<url/>
++	<licenses>
++		<license/>
++	</licenses>
++	<developers>
++		<developer/>
++	</developers>
++	<scm>
++		<connection/>
++		<developerConnection/>
++		<tag/>
++		<url/>
++	</scm>
++	<properties>
++		<java.version>21</java.version>
++	</properties>
++	<dependencies>
++		<dependency>
++			<groupId>org.springframework.boot</groupId>
++			<artifactId>spring-boot-starter</artifactId>
++		</dependency>
++
++		<!--It will bring Junit5 and Mockito as well.-->
++		<dependency>
++			<groupId>org.springframework.boot</groupId>
++			<artifactId>spring-boot-starter-test</artifactId>
++			<scope>test</scope>
++		</dependency>
++	</dependencies>
++
++	<build>
++		<plugins>
++			<plugin>
++				<groupId>org.springframework.boot</groupId>
++				<artifactId>spring-boot-maven-plugin</artifactId>
++			</plugin>
++
++			<!--compile source code-->
++			<!--In another word, compile .java file and generate .class file-->
++			<plugin>
++				<groupId>org.apache.maven.plugins</groupId>
++				<artifactId>maven-compiler-plugin</artifactId>
++				<!--spring-boot-starter-parent manage the version-->
++			</plugin>
++
++			<!--needed to run test-->
++			<plugin>
++				<groupId>org.apache.maven.plugins</groupId>
++				<artifactId>maven-surefire-plugin</artifactId>
++				<!--spring-boot-starter-parent manage the version-->
++			</plugin>
++
++		</plugins>
++	</build>
++
++</project>
+diff --git a/src/main/java/com/hubberspot/mockito/junit/JunitApplication.java b/src/main/java/com/hubberspot/mockito/junit/JunitApplication.java
+new file mode 100644
+index 0000000..0325dd4
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/JunitApplication.java
+@@ -0,0 +1,14 @@
++package com.hubberspot.mockito.junit;
++
++import org.springframework.boot.SpringApplication;
++import org.springframework.boot.autoconfigure.SpringBootApplication;
++
++@SpringBootApplication
++public class JunitApplication {
++
++	public static void main(String[] args) {
++
++		SpringApplication.run(JunitApplication.class, args);
++	}
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/dummy/Book.java b/src/main/java/com/hubberspot/mockito/junit/dummy/Book.java
+new file mode 100644
+index 0000000..5bee6f6
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/dummy/Book.java
+@@ -0,0 +1,52 @@
++package com.hubberspot.mockito.junit.dummy;
++
++import java.time.LocalDate;
++
++public class Book {
++
++    private String bookId;
++    private String title;
++    private int price;
++    private LocalDate publishedDate;
++
++    public Book(String bookId, String title, int price, LocalDate publishedDate) {
++        this.bookId = bookId;
++        this.title = title;
++        this.price = price;
++        this.publishedDate = publishedDate;
++    }
++
++    public String getBookId() {
++        return bookId;
++    }
++
++    public void setBookId(String bookId) {
++        this.bookId = bookId;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    public int getPrice() {
++        return price;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public LocalDate getPublishedDate() {
++        return publishedDate;
++    }
++
++    public void setPublishedDate(LocalDate publishedDate) {
++        this.publishedDate = publishedDate;
++    }
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/dummy/BookRepository.java b/src/main/java/com/hubberspot/mockito/junit/dummy/BookRepository.java
+new file mode 100644
+index 0000000..a2b11d6
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/dummy/BookRepository.java
+@@ -0,0 +1,9 @@
++package com.hubberspot.mockito.junit.dummy;
++
++import java.util.Collection;
++
++public interface BookRepository {
++
++    void save(Book book);
++    Collection<Book> findAll();
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/dummy/BookService.java b/src/main/java/com/hubberspot/mockito/junit/dummy/BookService.java
+new file mode 100644
+index 0000000..f7f2b3a
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/dummy/BookService.java
+@@ -0,0 +1,35 @@
++package com.hubberspot.mockito.junit.dummy;
++
++/*
++
++1. BookService is class under test
++2. And BookService external dependency is BookRepository and EmailService.
++3. And we are not using EmailService for any business logic.
++4. But EmailService object is required to compile code.
++4. so we will use Dummy doubles to test BookService.
++*/
++public class BookService {
++
++    private BookRepository bookRepository;
++    private EmailService emailService;
++
++    public BookService(BookRepository bookRepository, EmailService emailService) {
++        this.bookRepository = bookRepository;
++        this.emailService = emailService;
++    }
++
++    public void addBook(Book book){
++        bookRepository.save(book);
++    }
++
++    public int findNumberOfBooks(){
++
++        return bookRepository.findAll().size();
++    }
++
++
++//    other methods which uses EmailService
++
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/dummy/EmailService.java b/src/main/java/com/hubberspot/mockito/junit/dummy/EmailService.java
+new file mode 100644
+index 0000000..154d0ac
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/dummy/EmailService.java
+@@ -0,0 +1,6 @@
++package com.hubberspot.mockito.junit.dummy;
++
++public interface EmailService {
++
++    void sendEmail(String message);
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/fake/Book.java b/src/main/java/com/hubberspot/mockito/junit/fake/Book.java
+new file mode 100644
+index 0000000..45aa331
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/fake/Book.java
+@@ -0,0 +1,52 @@
++package com.hubberspot.mockito.junit.fake;
++
++import java.time.LocalDate;
++
++public class Book {
++
++    private String bookId;
++    private String title;
++    private int price;
++    private LocalDate publishedDate;
++
++    public Book(String bookId, String title, int price, LocalDate publishedDate) {
++        this.bookId = bookId;
++        this.title = title;
++        this.price = price;
++        this.publishedDate = publishedDate;
++    }
++
++    public String getBookId() {
++        return bookId;
++    }
++
++    public void setBookId(String bookId) {
++        this.bookId = bookId;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    public int getPrice() {
++        return price;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public LocalDate getPublishedDate() {
++        return publishedDate;
++    }
++
++    public void setPublishedDate(LocalDate publishedDate) {
++        this.publishedDate = publishedDate;
++    }
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/fake/BookRepository.java b/src/main/java/com/hubberspot/mockito/junit/fake/BookRepository.java
+new file mode 100644
+index 0000000..750deeb
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/fake/BookRepository.java
+@@ -0,0 +1,9 @@
++package com.hubberspot.mockito.junit.fake;
++
++import java.util.Collection;
++
++public interface BookRepository {
++
++    void save(Book book);
++    Collection<Book> findAll();
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/fake/BookService.java b/src/main/java/com/hubberspot/mockito/junit/fake/BookService.java
+new file mode 100644
+index 0000000..10018de
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/fake/BookService.java
+@@ -0,0 +1,27 @@
++package com.hubberspot.mockito.junit.fake;
++
++/*
++
++1. BookService is class under test
++2. And BookService external dependency is BookRepository.
++3. And BookRepository is dependent on database.
++4. Goal is to test BookService by using fake doubles. so that we don't need to hit real db.
++*/
++public class BookService {
++
++    private BookRepository bookRepository;
++
++    public BookService(BookRepository bookRepository) {
++        this.bookRepository = bookRepository;
++    }
++
++    public void addBook(Book book){
++        bookRepository.save(book);
++    }
++
++    public int findNumberOfBooks(){
++
++        return bookRepository.findAll().size();
++    }
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/mock/Book.java b/src/main/java/com/hubberspot/mockito/junit/mock/Book.java
+new file mode 100644
+index 0000000..288a0d1
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/mock/Book.java
+@@ -0,0 +1,52 @@
++package com.hubberspot.mockito.junit.mock;
++
++import java.time.LocalDate;
++
++public class Book {
++
++    private String bookId;
++    private String title;
++    private int price;
++    private LocalDate publishedDate;
++
++    public Book(String bookId, String title, int price, LocalDate publishedDate) {
++        this.bookId = bookId;
++        this.title = title;
++        this.price = price;
++        this.publishedDate = publishedDate;
++    }
++
++    public String getBookId() {
++        return bookId;
++    }
++
++    public void setBookId(String bookId) {
++        this.bookId = bookId;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    public int getPrice() {
++        return price;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public LocalDate getPublishedDate() {
++        return publishedDate;
++    }
++
++    public void setPublishedDate(LocalDate publishedDate) {
++        this.publishedDate = publishedDate;
++    }
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/mock/BookRepository.java b/src/main/java/com/hubberspot/mockito/junit/mock/BookRepository.java
+new file mode 100644
+index 0000000..100296c
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/mock/BookRepository.java
+@@ -0,0 +1,7 @@
++package com.hubberspot.mockito.junit.mock;
++
++public interface BookRepository {
++
++    void save(Book book);
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/mock/BookService.java b/src/main/java/com/hubberspot/mockito/junit/mock/BookService.java
+new file mode 100644
+index 0000000..6ee91a2
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/mock/BookService.java
+@@ -0,0 +1,37 @@
++package com.hubberspot.mockito.junit.mock;
++
++/*
++
++1. BookService is class under test
++2. And BookService external dependency is BookRepository.
++3. And BookRepository is dependent on database.
++4. Goal is to test BookService by using spy doubles. so that we don't need to hit real db.
++5. Also spy doubles helps to verify behaviour -> like whenever we are calling addBook() method
++   then save() method should be called. But how we can verify that save() method is really called or not?
++*/
++public class BookService {
++
++    private BookRepository bookRepository;
++
++    public BookService(BookRepository bookRepository) {
++        this.bookRepository = bookRepository;
++    }
++
++   /* public void addBook(Book book){
++        bookRepository.save(book);
++    }*/
++
++    public void addBook(Book book){
++
++        if(book.getPrice() > 400){
++            return;
++        }
++
++        bookRepository.save(book);
++    }
++
++
++
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/spy/Book.java b/src/main/java/com/hubberspot/mockito/junit/spy/Book.java
+new file mode 100644
+index 0000000..5463eb4
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/spy/Book.java
+@@ -0,0 +1,52 @@
++package com.hubberspot.mockito.junit.spy;
++
++import java.time.LocalDate;
++
++public class Book {
++
++    private String bookId;
++    private String title;
++    private int price;
++    private LocalDate publishedDate;
++
++    public Book(String bookId, String title, int price, LocalDate publishedDate) {
++        this.bookId = bookId;
++        this.title = title;
++        this.price = price;
++        this.publishedDate = publishedDate;
++    }
++
++    public String getBookId() {
++        return bookId;
++    }
++
++    public void setBookId(String bookId) {
++        this.bookId = bookId;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    public int getPrice() {
++        return price;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public LocalDate getPublishedDate() {
++        return publishedDate;
++    }
++
++    public void setPublishedDate(LocalDate publishedDate) {
++        this.publishedDate = publishedDate;
++    }
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/spy/BookRepository.java b/src/main/java/com/hubberspot/mockito/junit/spy/BookRepository.java
+new file mode 100644
+index 0000000..8ed1261
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/spy/BookRepository.java
+@@ -0,0 +1,9 @@
++package com.hubberspot.mockito.junit.spy;
++
++import java.util.Collection;
++
++public interface BookRepository {
++
++    void save(Book book);
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/spy/BookService.java b/src/main/java/com/hubberspot/mockito/junit/spy/BookService.java
+new file mode 100644
+index 0000000..dedec21
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/spy/BookService.java
+@@ -0,0 +1,37 @@
++package com.hubberspot.mockito.junit.spy;
++
++/*
++
++1. BookService is class under test
++2. And BookService external dependency is BookRepository.
++3. And BookRepository is dependent on database.
++4. Goal is to test BookService by using spy doubles. so that we don't need to hit real db.
++5. Also spy doubles helps to verify behaviour -> like whenever we are calling addBook() method
++   then save() method should be called. But how we can verify that save() method is really called or not?
++*/
++public class BookService {
++
++    private BookRepository bookRepository;
++
++    public BookService(BookRepository bookRepository) {
++        this.bookRepository = bookRepository;
++    }
++
++   /* public void addBook(Book book){
++        bookRepository.save(book);
++    }*/
++
++    public void addBook(Book book){
++
++        if(book.getPrice() > 400){
++            return;
++        }
++
++        bookRepository.save(book);
++    }
++
++
++
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/stub/Book.java b/src/main/java/com/hubberspot/mockito/junit/stub/Book.java
+new file mode 100644
+index 0000000..571bd59
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/stub/Book.java
+@@ -0,0 +1,52 @@
++package com.hubberspot.mockito.junit.stub;
++
++import java.time.LocalDate;
++
++public class Book {
++
++    private String bookId;
++    private String title;
++    private int price;
++    private LocalDate publishedDate;
++
++    public Book(String bookId, String title, int price, LocalDate publishedDate) {
++        this.bookId = bookId;
++        this.title = title;
++        this.price = price;
++        this.publishedDate = publishedDate;
++    }
++
++    public String getBookId() {
++        return bookId;
++    }
++
++    public void setBookId(String bookId) {
++        this.bookId = bookId;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    public int getPrice() {
++        return price;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public LocalDate getPublishedDate() {
++        return publishedDate;
++    }
++
++    public void setPublishedDate(LocalDate publishedDate) {
++        this.publishedDate = publishedDate;
++    }
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/stub/BookRepository.java b/src/main/java/com/hubberspot/mockito/junit/stub/BookRepository.java
+new file mode 100644
+index 0000000..1c1f6fb
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/stub/BookRepository.java
+@@ -0,0 +1,11 @@
++package com.hubberspot.mockito.junit.stub;
++
++import java.util.Collection;
++import java.util.List;
++
++public interface BookRepository {
++
++
++
++    List<Book> findNewBooks(int days);
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/stub/BookService.java b/src/main/java/com/hubberspot/mockito/junit/stub/BookService.java
+new file mode 100644
+index 0000000..6e1c523
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/stub/BookService.java
+@@ -0,0 +1,44 @@
++package com.hubberspot.mockito.junit.stub;
++
++import java.util.List;
++
++/*
++
++1. BookService is class under test
++2. And BookService external dependency is BookRepository.
++3. And BookRepository is dependent on database.
++4. Goal is to test BookService by using fake doubles. so that we don't need to hit real db.
++*/
++public class BookService {
++
++    private BookRepository bookRepository;
++
++    public BookService(BookRepository bookRepository) {
++        this.bookRepository = bookRepository;
++    }
++
++
++    /*
++    * 1. Here we are fetching books from db then applying business logic on books.
++    * 2. Here Business logic is following -
++    *    Apply 10 % discount on all books published within last 7 days
++    * */
++
++
++    /* here goal is to test this method logic.*/
++    public List<Book> getNewBooksWithAppliedDiscount(int discountRate, int days){
++
++        List<Book> newBooks = bookRepository.findNewBooks(days);
++        // cost price = 500 -> after 10 % discount -> 500 - 50 = 450
++        for(Book book : newBooks){
++
++            int price = book.getPrice();
++            int newPrice = price - (discountRate * price / 100);
++            book.setPrice(newPrice);
++        }
++        return newBooks;
++    }
++
++
++
++}
+diff --git a/src/main/resources/application.properties b/src/main/resources/application.properties
+new file mode 100644
+index 0000000..335b416
+--- /dev/null
++++ b/src/main/resources/application.properties
+@@ -0,0 +1 @@
++spring.application.name=junit
+diff --git a/src/test/java/com/hubberspot/mockito/junit/JunitApplicationTests.java b/src/test/java/com/hubberspot/mockito/junit/JunitApplicationTests.java
+new file mode 100644
+index 0000000..db2af49
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/JunitApplicationTests.java
+@@ -0,0 +1,13 @@
++package com.hubberspot.mockito.junit;
++
++import org.junit.jupiter.api.Test;
++import org.springframework.boot.test.context.SpringBootTest;
++
++@SpringBootTest
++class JunitApplicationTests {
++
++	@Test
++	void contextLoads() {
++	}
++
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/dummy/DummyEmailService.java b/src/test/java/com/hubberspot/mockito/junit/dummy/DummyEmailService.java
+new file mode 100644
+index 0000000..eb9b5f2
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/dummy/DummyEmailService.java
+@@ -0,0 +1,11 @@
++package com.hubberspot.mockito.junit.dummy;
++
++public class DummyEmailService implements EmailService{
++
++
++    @Override
++    public void sendEmail(String message) {
++
++        throw new AssertionError("Method not implemented !!!");
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/dummy/DummyTest.java b/src/test/java/com/hubberspot/mockito/junit/dummy/DummyTest.java
+new file mode 100644
+index 0000000..c5fabe0
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/dummy/DummyTest.java
+@@ -0,0 +1,35 @@
++package com.hubberspot.mockito.junit.dummy;
++
++
++
++import org.junit.jupiter.api.Test;
++
++import java.time.LocalDate;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++
++public class DummyTest {
++
++    @Test
++    public void demoDummy(){
++
++        BookRepository bookRepository = new FakeBookRepository();
++
++//        here BookService constructor requires two parameters -> 1. BookRepository  2. EmailService
++//        but if you look at the code of BookService -> It is not used for business logic.
++//        EmailService is needed just for code compilation.
++//        So we will create DummyEmailService which will implement EmailService.
++//        And we will use DummyEmailService object.
++
++//        BookService bookService = new BookService(bookRepository);
++
++        EmailService emailService = new DummyEmailService();
++        BookService bookService = new BookService(bookRepository, emailService);
++        bookService.addBook(new Book("1234", "Mockito In Action", 250, LocalDate.now()));
++        bookService.addBook(new Book("51237", "JUnit5 In Action", 200, LocalDate.now()));
++
++//      assertEquals(expectedValue, actualValue)
++//
++        assertEquals(1, bookService.findNumberOfBooks());
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/dummy/FakeBookRepository.java b/src/test/java/com/hubberspot/mockito/junit/dummy/FakeBookRepository.java
+new file mode 100644
+index 0000000..dfb666c
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/dummy/FakeBookRepository.java
+@@ -0,0 +1,34 @@
++package com.hubberspot.mockito.junit.dummy;
++
++import com.hubberspot.mockito.junit.dummy.Book;
++import com.hubberspot.mockito.junit.dummy.BookRepository;
++
++import java.util.Collection;
++import java.util.HashMap;
++import java.util.Map;
++
++public class FakeBookRepository implements BookRepository {
++
++
++//  FakeBookRepository will not go to real db.
++//  We can use in memory db, HashMap or List
++
++//  Here bookStore is acting as a lighter form of db.
++    Map<String, Book> bookStore = new HashMap<>();
++
++
++
++
++    @Override
++    public void save(Book book) {
++
++        bookStore.put(book.getBookId(), book);
++    }
++
++
++
++    @Override
++    public Collection<Book> findAll() {
++        return bookStore.values();
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/fake/FakeBookRepository.java b/src/test/java/com/hubberspot/mockito/junit/fake/FakeBookRepository.java
+new file mode 100644
+index 0000000..3d7422e
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/fake/FakeBookRepository.java
+@@ -0,0 +1,29 @@
++package com.hubberspot.mockito.junit.fake;
++
++import java.util.Collection;
++import java.util.HashMap;
++import java.util.Map;
++
++public class FakeBookRepository implements BookRepository {
++
++
++//  FakeBookRepository will not go to real db.
++//  We can use in memory db, HashMap or List
++
++//  Here bookStore is acting as a lighter form of db.
++    Map<String, Book> bookStore = new HashMap<>();
++
++
++
++
++    @Override
++    public void save(Book book) {
++
++        bookStore.put(book.getBookId(), book);
++    }
++
++    @Override
++    public Collection<Book> findAll() {
++        return bookStore.values();
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/fake/FakeTest.java b/src/test/java/com/hubberspot/mockito/junit/fake/FakeTest.java
+new file mode 100644
+index 0000000..51f8f26
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/fake/FakeTest.java
+@@ -0,0 +1,40 @@
++package com.hubberspot.mockito.junit.fake;
++
++import org.junit.jupiter.api.Test;
++
++import java.time.LocalDate;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++
++
++public class FakeTest {
++
++    /*
++    1. We are trying to test BookService using Fake.
++    2.
++
++    */
++    @Test
++    public void testFake(){
++
++//      To create an object of BookService -> we need BookRepository -> Just look at the
++//      ctor of BookService.
++//      But we don't want to use BookRepository object.
++//      why?
++//      Because we want to test BookService independently.
++//
++//        BookService bookService = new BookService();
++
++//      You can see how beautifully we created an object of BookService using FakeBookRepository.
++//      We bypass the external dependency to create an instance of BookService.
++        BookRepository bookRepository = new FakeBookRepository();
++        BookService bookService = new BookService(bookRepository);
++
++        bookService.addBook(new Book("1234", "Mockito In Action", 250, LocalDate.now()));
++        bookService.addBook(new Book("51237", "JUnit5 In Action", 200, LocalDate.now()));
++
++//      assertEquals(expectedValue, actualValue)
++//
++        assertEquals(2, bookService.findNumberOfBooks());
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/mock/BookRepositoryMock.java b/src/test/java/com/hubberspot/mockito/junit/mock/BookRepositoryMock.java
+new file mode 100644
+index 0000000..e9db17b
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/mock/BookRepositoryMock.java
+@@ -0,0 +1,30 @@
++package com.hubberspot.mockito.junit.mock;
++
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++
++public class BookRepositoryMock implements BookRepository {
++
++//    number of times save() method called
++    int saveCalled = 0;
++
++//    we are assigning last added book to this variable.
++    Book lastAddedBook = null;
++
++//    we are providing implementation to save() method used in BookService class.
++    @Override
++    public void save(Book book) {
++
++        saveCalled++;
++        lastAddedBook = book;
++
++    }
++
++    public void verify(Book book, int times){
++
++        assertEquals(times, saveCalled);
++        assertEquals(book, lastAddedBook);
++    }
++
++
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/mock/MockTest.java b/src/test/java/com/hubberspot/mockito/junit/mock/MockTest.java
+new file mode 100644
+index 0000000..8e86d57
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/mock/MockTest.java
+@@ -0,0 +1,33 @@
++package com.hubberspot.mockito.junit.mock;
++
++
++
++import org.junit.jupiter.api.Test;
++
++import java.time.LocalDate;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++
++public class MockTest {
++
++    @Test
++    public void demoMock(){
++
++        BookRepositoryMock bookRepositoryMock = new BookRepositoryMock();
++        BookService bookService = new BookService(bookRepositoryMock);
++
++        Book book1 = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        Book book2 = new Book("5127", "Junit5 In Action", 400, LocalDate.now());
++
++
++        bookService.addBook(book1);
++        bookService.addBook(book2);
++
++        bookRepositoryMock.verify(book2, 1);
++
++
++
++
++
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/spy/BookRepositorySpy.java b/src/test/java/com/hubberspot/mockito/junit/spy/BookRepositorySpy.java
+new file mode 100644
+index 0000000..f9ec00a
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/spy/BookRepositorySpy.java
+@@ -0,0 +1,29 @@
++package com.hubberspot.mockito.junit.spy;
++
++public class BookRepositorySpy implements BookRepository {
++
++//    number of times save() method called
++    int saveCalled = 0;
++
++//    we are assigning last added book to this variable.
++    Book lastAddedBook = null;
++
++//    we are providing implementation to save() method used in BookService class.
++    @Override
++    public void save(Book book) {
++
++        saveCalled++;
++        lastAddedBook = book;
++
++    }
++
++    public int timesCalled(){
++
++        return saveCalled;
++    }
++
++    public boolean calledWith(Book book){
++
++        return lastAddedBook.equals(book);
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/spy/SpyTest.java b/src/test/java/com/hubberspot/mockito/junit/spy/SpyTest.java
+new file mode 100644
+index 0000000..ed4131f
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/spy/SpyTest.java
+@@ -0,0 +1,39 @@
++package com.hubberspot.mockito.junit.spy;
++
++
++import org.junit.jupiter.api.Test;
++
++import java.time.LocalDate;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.junit.jupiter.api.Assertions.assertTrue;
++
++public class SpyTest {
++
++    @Test
++    public void demoSpy(){
++
++        BookRepositorySpy bookRepositorySpy = new BookRepositorySpy();
++        BookService bookService = new BookService(bookRepositorySpy);
++
++        Book book1 = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        Book book2 = new Book("5127", "Junit5 In Action", 400, LocalDate.now());
++
++
++//        bookService.addBook(book1);
++//        bookService.addBook(book2);
++
++//        assertEquals(2, bookRepositorySpy.timesCalled());
++//        assertTrue(bookRepositorySpy.calledWith(book2));
++
++
++        bookService.addBook(book1);
++        assertEquals(0, bookRepositorySpy.timesCalled());
++
++        bookService.addBook(book2);
++        assertEquals(1, bookRepositorySpy.timesCalled());
++
++
++
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/stub/BookRepositoryStub.java b/src/test/java/com/hubberspot/mockito/junit/stub/BookRepositoryStub.java
+new file mode 100644
+index 0000000..e3c9be0
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/stub/BookRepositoryStub.java
+@@ -0,0 +1,26 @@
++package com.hubberspot.mockito.junit.stub;
++
++import java.time.LocalDate;
++import java.util.ArrayList;
++import java.util.List;
++
++public class BookRepositoryStub implements BookRepository {
++
++
++    /*
++    * Instead of hitting real db to get books. We hardcoded few books and will test discount
++    * logic using these hardcoded books.
++    * */
++    @Override
++    public List<Book> findNewBooks(int days) {
++
++        List<Book> newBooks = new ArrayList<>();
++        Book book1 = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        Book book2 = new Book("5127", "Junit5 In Action", 400, LocalDate.now());
++
++        newBooks.add(book1);
++        newBooks.add(book2);
++
++        return newBooks;
++    }
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/stub/StubTest.java b/src/test/java/com/hubberspot/mockito/junit/stub/StubTest.java
+new file mode 100644
+index 0000000..c9c605d
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/stub/StubTest.java
+@@ -0,0 +1,28 @@
++package com.hubberspot.mockito.junit.stub;
++
++import org.junit.jupiter.api.Test;
++
++import java.util.List;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++
++public class StubTest {
++
++    @Test
++    public void demoStub(){
++
++        BookRepository bookRepository = new BookRepositoryStub();
++        BookService bookService = new BookService(bookRepository);
++
++//        here we are calling BookService method -> getNewBooksWithAppliedDiscount() and using assertEquals() to verify business logic
++//        written in BookService class
++        List<Book> newBooksWithAppliedDiscount = bookService.getNewBooksWithAppliedDiscount(10, 7);
++
++        assertEquals(2, newBooksWithAppliedDiscount.size());
++        assertEquals(450, newBooksWithAppliedDiscount.get(0).getPrice());
++        assertEquals(360, newBooksWithAppliedDiscount.get(1).getPrice());
++
++
++
++    }
++}
+-- 
+2.41.0.windows.1
+
