@@ -1,0 +1,71 @@
+From 92788eec640063cca28c5e0f6f02b8f0e42a6af4 Mon Sep 17 00:00:00 2001
+From: "raviprabhat.tcs" <developer1-tc@uidai.net.in>
+Date: Tue, 31 Mar 2026 18:37:59 +0530
+Subject: [PATCH] 4. Creating Mock Test double using Mockito
+
+---
+ .../mockito/junit/mock/BookService.java       |  4 ----
+ .../mockito/junit/mock/MockTest.java          | 24 +++++++++++++++++++
+ 2 files changed, 24 insertions(+), 4 deletions(-)
+
+diff --git a/src/main/java/com/hubberspot/mockito/junit/mock/BookService.java b/src/main/java/com/hubberspot/mockito/junit/mock/BookService.java
+index 6ee91a2..7842d62 100644
+--- a/src/main/java/com/hubberspot/mockito/junit/mock/BookService.java
++++ b/src/main/java/com/hubberspot/mockito/junit/mock/BookService.java
+@@ -30,8 +30,4 @@ public class BookService {
+         bookRepository.save(book);
+     }
+ 
+-
+-
+-
+-
+ }
+diff --git a/src/test/java/com/hubberspot/mockito/junit/mock/MockTest.java b/src/test/java/com/hubberspot/mockito/junit/mock/MockTest.java
+index 8e86d57..f9b9522 100644
+--- a/src/test/java/com/hubberspot/mockito/junit/mock/MockTest.java
++++ b/src/test/java/com/hubberspot/mockito/junit/mock/MockTest.java
+@@ -3,6 +3,7 @@ package com.hubberspot.mockito.junit.mock;
+ 
+ 
+ import org.junit.jupiter.api.Test;
++import org.mockito.Mockito;
+ 
+ import java.time.LocalDate;
+ 
+@@ -25,9 +26,32 @@ public class MockTest {
+ 
+         bookRepositoryMock.verify(book2, 1);
+ 
++    }
++
++    @Test
++    public void mockTestDoubleWithMockito(){
++
++//      Mocking BookRepository
++        BookRepository bookRepository = Mockito.mock(BookRepository.class);
++        BookService bookService = new BookService(bookRepository);
++
++        Book book1 = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        Book book2 = new Book("5127", "Junit5 In Action", 400, LocalDate.now());
++
++
++        bookService.addBook(book1); // return
++        bookService.addBook(book2); // save will be called
+ 
++//      for book2 save() will be called -> test pass
++        Mockito.verify(bookRepository).save(book2);
+ 
++//        for book1 save() will not be called
++//        Mockito.verify(bookRepository).save(book1);
+ 
++//      for book2 save() will be called 1 times
++        Mockito.verify(bookRepository, Mockito.times(1)).save(book2);
++//      for book1 save() will be called 0 times
++        Mockito.verify(bookRepository, Mockito.times(0)).save(book1);
+ 
+     }
+ }
+-- 
+2.41.0.windows.1
+
