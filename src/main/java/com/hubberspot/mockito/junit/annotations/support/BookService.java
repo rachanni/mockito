@@ -1,4 +1,4 @@
-package com.hubberspot.mockito.junit.stub;
+package com.hubberspot.mockito.junit.annotations.support;
 
 import java.util.List;
 
