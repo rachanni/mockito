@@ -101,4 +101,12 @@ public class BookServiceTest {
         bookService.addBook(bookRequest);
 
     }
+
+    @Test
+    public void testSaveBookWithBookRequestWithGreaterPrice() {
+        BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
+        Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
+//		doNothing().when(bookRepository).save(book);
+        bookService.addBook(bookRequest);
+    }
 }

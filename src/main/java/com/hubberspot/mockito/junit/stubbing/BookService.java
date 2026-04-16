@@ -62,6 +62,9 @@ public class BookService {
 
     public void addBook(BookRequest bookRequest){
 
+        if(bookRequest.getPrice() <= 500){
+            return;
+        }
         Book book = new Book(); // Book@450794b4
         book.setTitle(bookRequest.getTitle());
         book.setPrice(bookRequest.getPrice());
