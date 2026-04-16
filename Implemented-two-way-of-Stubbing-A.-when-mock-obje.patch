@@ -1,0 +1,250 @@
+From 837efeed37880e96ec0fcd987e4103b2d079c145 Mon Sep 17 00:00:00 2001
+From: "raviprabhat.tcs" <developer1-tc@uidai.net.in>
+Date: Thu, 16 Apr 2026 14:55:00 +0530
+Subject: [PATCH 1/3] 1. Implemented two way of Stubbing A. when(mock object
+ method call).thenReturn(stubbed response)  B. doReturn(stubbed
+ response).when(mock object).mock object method
+
+---
+ .../mockito/junit/stubbing/Book.java          | 52 +++++++++++++
+ .../junit/stubbing/BookRepository.java        | 15 ++++
+ .../mockito/junit/stubbing/BookService.java   | 64 ++++++++++++++++
+ .../junit/stubbing/BookServiceTest.java       | 74 +++++++++++++++++++
+ 4 files changed, 205 insertions(+)
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/stubbing/Book.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/stubbing/BookRepository.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/stubbing/BookService.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
+
+diff --git a/src/main/java/com/hubberspot/mockito/junit/stubbing/Book.java b/src/main/java/com/hubberspot/mockito/junit/stubbing/Book.java
+new file mode 100644
+index 0000000..cc8a762
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/stubbing/Book.java
+@@ -0,0 +1,52 @@
++package com.hubberspot.mockito.junit.stubbing;
++
++import java.time.LocalDate;
++
++public class Book {
++
++    private String bookId;
++    private String title;
++    private int price;
++    private LocalDate publishedDate;
++
++    public Book(String bookId, String title, int price, LocalDate publishedDate) {
++        this.bookId = bookId;
++        this.title = title;
++        this.price = price;
++        this.publishedDate = publishedDate;
++    }
++
++    public String getBookId() {
++        return bookId;
++    }
++
++    public void setBookId(String bookId) {
++        this.bookId = bookId;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    public int getPrice() {
++        return price;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public LocalDate getPublishedDate() {
++        return publishedDate;
++    }
++
++    public void setPublishedDate(LocalDate publishedDate) {
++        this.publishedDate = publishedDate;
++    }
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/stubbing/BookRepository.java b/src/main/java/com/hubberspot/mockito/junit/stubbing/BookRepository.java
+new file mode 100644
+index 0000000..a8e398c
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/stubbing/BookRepository.java
+@@ -0,0 +1,15 @@
++package com.hubberspot.mockito.junit.stubbing;
++
++import java.util.List;
++
++public interface BookRepository {
++
++
++
++    List<Book> findNewBooks(int days);
++
++    Book findBookByBookId(String bookId);
++
++    void save(Book book);
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/stubbing/BookService.java b/src/main/java/com/hubberspot/mockito/junit/stubbing/BookService.java
+new file mode 100644
+index 0000000..5d2971e
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/stubbing/BookService.java
+@@ -0,0 +1,64 @@
++package com.hubberspot.mockito.junit.stubbing;
++
++import java.util.List;
++
++/*
++
++1. BookService is class under test
++2. And BookService external dependency is BookRepository.
++3. And BookRepository is dependent on database.
++4. Goal is to test BookService by using fake doubles. so that we don't need to hit real db.
++*/
++public class BookService {
++
++    private BookRepository bookRepository;
++
++    public BookService(BookRepository bookRepository) {
++        this.bookRepository = bookRepository;
++    }
++
++
++    /*
++    * 1. Here we are fetching books from db then applying business logic on books.
++    * 2. Here Business logic is following -
++    *    Apply 10 % discount on all books published within the last 7 days
++    * */
++
++
++    /* here goal is to test this method logic.*/
++    public List<Book> getNewBooksWithAppliedDiscount(int discountRate, int days){
++
++        List<Book> newBooks = bookRepository.findNewBooks(days);
++        // cost price = 500 -> after 10 % discount -> 500 - 50 = 450
++        for(Book book : newBooks){
++
++            int price = book.getPrice();
++            int newPrice = price - (discountRate * price / 100);
++            book.setPrice(newPrice);
++        }
++        return newBooks;
++    }
++
++//  calculateTotalCost(List<String> bookIds) takes list of bookId -> or simply a list object containing bookId
++//  we need to find total cost.
++    public int calculateTotalCost(List<String> bookIds){
++
++        int total = 0;
++//      fetching each book one by one with the help of bookId
++        for(String bookId : bookIds){
++
++           Book book =  bookRepository.findBookByBookId(bookId);
++           total = total + book.getPrice();
++        }
++        return total;
++    }
++
++
++    public void addBook(Book book){
++
++        bookRepository.save(book);
++    }
++
++
++
++}
+diff --git a/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java b/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
+new file mode 100644
+index 0000000..4de5abe
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
+@@ -0,0 +1,74 @@
++package com.hubberspot.mockito.junit.stubbing;
++
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.extension.ExtendWith;
++import org.mockito.InjectMocks;
++import org.mockito.Mock;
++import org.mockito.junit.jupiter.MockitoExtension;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.time.LocalDate;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.mockito.Mockito.*;
++
++@ExtendWith(MockitoExtension.class)
++public class BookServiceTest {
++    
++    @InjectMocks
++    private BookService bookService;
++    
++    @Mock
++    private BookRepository bookRepository;
++    
++    @Test
++    public void testcalculateTotalCost(){
++        
++        List<String> bookIds = new ArrayList<>();
++        bookIds.add("1234");
++        bookIds.add("1235");
++
++        Book book1 = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        Book book2 = new Book("1235", "Junit5 In Action", 400, LocalDate.now());
++
++
++//        Approach -1
++//        Inside when() mock object method call is completed -> when() is taking mock object method call as argument
++//        Inside thenReturn() stubbed response is passed -> thenReturn() is taking stubbed object as an argument
++//        when(mock object method call).thenReturn(stubbed response)
++//        this when() belongs to Mockito class
++//        when(bookRepository.findBookByBookId("1234")).thenReturn(book1);
++//        when(bookRepository.findBookByBookId("1235")).thenReturn(book2);
++
++//        Approach - 2
++//        doReturn() -> is taking stubbed object as an argument
++//        when() -> is taking only mock object as an argument
++//        when().mock object method -> when() is calling mock object method
++//        doReturn(stubbed response).when(mock object).mock object method
++//        this when() belongs to Stubber interface
++        doReturn(book1).when(bookRepository).findBookByBookId("1234");
++        doReturn(book2).when(bookRepository).findBookByBookId("1235");
++
++//        what will happen if we club approach - 1 and approach - 2
++//        org.mockito.exceptions.misusing.UnfinishedStubbingException:
++//        doReturn(book1).when(bookRepository.findBookByBookId("1234"));
++//        doReturn(book2).when(bookRepository.findBookByBookId("1235"));
++
++
++
++
++        int actualCost = bookService.calculateTotalCost(bookIds);
++        assertEquals(900, actualCost);
++    }
++
++
++    @Test
++    public void testSaveBook(){
++
++        Book book1 = new Book(null, "Mockito In Action", 500, LocalDate.now());
++        doNothing().when(bookRepository).save(book1);
++        bookService.addBook(book1);
++
++    }
++}
+-- 
+2.41.0.windows.1
+

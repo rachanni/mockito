@@ -1,0 +1,365 @@
+From cd4daf9a916f3e0b413a153a260b2c7b3faa27d0 Mon Sep 17 00:00:00 2001
+From: "raviprabhat.tcs" <developer1-tc@uidai.net.in>
+Date: Thu, 16 Apr 2026 20:16:24 +0530
+Subject: [PATCH 3/3] 1. Behaviour Verification
+
+---
+ .../junit/behaviour/verification/Book.java    |  70 ++++++++++++
+ .../verification/BookRepository.java          |  13 +++
+ .../behaviour/verification/BookRequest.java   |  41 +++++++
+ .../behaviour/verification/BookService.java   |  51 +++++++++
+ .../mockito/junit/stubbing/BookService.java   |   3 +
+ .../verification/BookServiceTest.java         | 106 ++++++++++++++++++
+ .../junit/stubbing/BookServiceTest.java       |   8 ++
+ 7 files changed, 292 insertions(+)
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/behaviour/verification/Book.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRepository.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRequest.java
+ create mode 100644 src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookService.java
+ create mode 100644 src/test/java/com/hubberspot/mockito/junit/behaviour/verification/BookServiceTest.java
+
+diff --git a/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/Book.java b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/Book.java
+new file mode 100644
+index 0000000..4d62304
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/Book.java
+@@ -0,0 +1,70 @@
++package com.hubberspot.mockito.junit.behaviour.verification;
++
++import java.time.LocalDate;
++import java.util.Objects;
++
++public class Book {
++
++    private String bookId;
++    private String title;
++    private int price;
++    private LocalDate publishedDate;
++
++    public Book() {
++
++    }
++
++    public Book(String bookId, String title, int price, LocalDate publishedDate) {
++        this.bookId = bookId;
++        this.title = title;
++        this.price = price;
++        this.publishedDate = publishedDate;
++    }
++
++    public String getBookId() {
++        return bookId;
++    }
++
++    public void setBookId(String bookId) {
++        this.bookId = bookId;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    public int getPrice() {
++        return price;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public LocalDate getPublishedDate() {
++        return publishedDate;
++    }
++
++    public void setPublishedDate(LocalDate publishedDate) {
++        this.publishedDate = publishedDate;
++    }
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++        Book book = (Book) o;
++        return price == book.price &&
++                        Objects.equals(title, book.title) &&
++                        Objects.equals(publishedDate, book.publishedDate);
++    }
++
++    @Override
++    public int hashCode() {
++        return Objects.hash(title, price, publishedDate);
++    }
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRepository.java b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRepository.java
+new file mode 100644
+index 0000000..2486e51
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRepository.java
+@@ -0,0 +1,13 @@
++package com.hubberspot.mockito.junit.behaviour.verification;
++
++import java.util.List;
++
++public interface BookRepository {
++
++
++
++
++    void save(Book book);
++
++    Book findBookById(String bookId);
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRequest.java b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRequest.java
+new file mode 100644
+index 0000000..0874918
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRequest.java
+@@ -0,0 +1,41 @@
++package com.hubberspot.mockito.junit.behaviour.verification;
++
++import java.time.LocalDate;
++
++public class BookRequest {
++
++    private String title;
++    private int price;
++    private LocalDate publishedDate;
++
++    public BookRequest(String title, int price, LocalDate publishedDate) {
++        this.title = title;
++        this.price = price;
++        this.publishedDate = publishedDate;
++    }
++
++    public String getTitle() {
++        return title;
++    }
++
++    public void setTitle(String title) {
++        this.title = title;
++    }
++
++    public int getPrice() {
++        return price;
++    }
++
++    public void setPrice(int price) {
++        this.price = price;
++    }
++
++    public LocalDate getPublishedDate() {
++        return publishedDate;
++    }
++
++    public void setPublishedDate(LocalDate publishedDate) {
++        this.publishedDate = publishedDate;
++    }
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookService.java b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookService.java
+new file mode 100644
+index 0000000..1533ca2
+--- /dev/null
++++ b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookService.java
+@@ -0,0 +1,51 @@
++package com.hubberspot.mockito.junit.behaviour.verification;
++
++
++public class BookService {
++
++    private BookRepository bookRepository;
++
++    public BookService(BookRepository bookRepository) {
++        this.bookRepository = bookRepository;
++    }
++
++
++
++
++//  return type is void
++    public void addBook(Book book){
++
++       /* if(book.getPrice() <= 500){
++            return;
++        }*/
++        bookRepository.save(book);
++    }
++
++    public void addBook(BookRequest bookRequest){
++
++        if(bookRequest.getPrice() <= 500){
++            return;
++        }
++        Book book = new Book();
++        book.setTitle(bookRequest.getTitle());
++        book.setPrice(bookRequest.getPrice());
++        book.setPublishedDate(bookRequest.getPublishedDate());
++
++        bookRepository.save(book);
++    }
++
++    public void updatePrice(String bookId, int updatedPrice){
++        if(bookId == null){
++            return;
++        }
++        Book book = bookRepository.findBookById(bookId);
++       /* if(book.getPrice() == updatedPrice){
++            return;
++        }*/
++        book.setPrice(updatedPrice);
++        bookRepository.save(book);
++    }
++
++
++
++}
+diff --git a/src/main/java/com/hubberspot/mockito/junit/stubbing/BookService.java b/src/main/java/com/hubberspot/mockito/junit/stubbing/BookService.java
+index a97b6cb..9385c4c 100644
+--- a/src/main/java/com/hubberspot/mockito/junit/stubbing/BookService.java
++++ b/src/main/java/com/hubberspot/mockito/junit/stubbing/BookService.java
+@@ -62,6 +62,9 @@ public class BookService {
+ 
+     public void addBook(BookRequest bookRequest){
+ 
++        if(bookRequest.getPrice() <= 500){
++            return;
++        }
+         Book book = new Book(); // Book@450794b4
+         book.setTitle(bookRequest.getTitle());
+         book.setPrice(bookRequest.getPrice());
+diff --git a/src/test/java/com/hubberspot/mockito/junit/behaviour/verification/BookServiceTest.java b/src/test/java/com/hubberspot/mockito/junit/behaviour/verification/BookServiceTest.java
+new file mode 100644
+index 0000000..6c97da1
+--- /dev/null
++++ b/src/test/java/com/hubberspot/mockito/junit/behaviour/verification/BookServiceTest.java
+@@ -0,0 +1,106 @@
++package com.hubberspot.mockito.junit.behaviour.verification;
++
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.extension.ExtendWith;
++import org.mockito.InOrder;
++import org.mockito.InjectMocks;
++import org.mockito.Mock;
++import org.mockito.Mockito;
++import org.mockito.junit.jupiter.MockitoExtension;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.time.LocalDate;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.mockito.Mockito.*;
++
++@ExtendWith(MockitoExtension.class)
++public class BookServiceTest {
++
++    @InjectMocks
++    private BookService bookService;
++
++    @Mock
++    private BookRepository bookRepository;
++
++    @Test
++    public void testAddBook(){
++
++        Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
++        bookService.addBook(book);
++        verify(bookRepository).save(book);
++    }
++
++     @Test
++    public void testSaveBookWithBookRequestWithGreaterPrice() {
++        BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
++        Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
++//		doNothing().when(bookRepository).save(book);
++        bookService.addBook(bookRequest);
++        verify(bookRepository, times(0)).save(book);
++    }
++
++    @Test
++    public void testSaveBookWithBookRequestWithGreaterPrice1() {
++        BookRequest bookRequest = new BookRequest("Mockito In Action", 600, LocalDate.now());
++        Book book = new Book(null, "Mockito In Action", 600, LocalDate.now());
++//		doNothing().when(bookRepository).save(book);
++        bookService.addBook(bookRequest);
++        bookService.addBook(bookRequest);
++        verify(bookRepository, times(2)).save(book);
++    }
++
++    @Test
++    public void testSaveBookWithBookRequestWithGreaterPrice2() {
++        BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
++        Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
++//		doNothing().when(bookRepository).save(book);
++        bookService.addBook(bookRequest);
++//      instead of using Mockito.times(0) -> better to use Mockito.never()
++        verify(bookRepository, never()).save(book);
++    }
++
++    @Test
++    public void testUpdatePrice(){
++
++        bookService.updatePrice(null, 600);
++        verifyNoInteractions(bookRepository);
++    }
++
++    @Test
++    public void testUpdatePrice2(){
++
++        Book book = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        when(bookRepository.findBookById("1234")).thenReturn(book);
++        bookService.updatePrice("1234", 500);
++        verify(bookRepository).findBookById("1234");
++        verifyNoMoreInteractions(bookRepository);
++    }
++
++    @Test
++    public void testUpdatePrice3(){
++
++        Book book = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        when(bookRepository.findBookById("1234")).thenReturn(book);
++        bookService.updatePrice("1234", 500);
++        verify(bookRepository).findBookById("1234");
++        verify(bookRepository).save(book);
++        verifyNoMoreInteractions(bookRepository);
++    }
++
++    @Test
++    public void testUpdatePrice4(){
++
++        Book book = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        when(bookRepository.findBookById("1234")).thenReturn(book);
++        bookService.updatePrice("1234", 500);
++        InOrder inOrder = Mockito.inOrder(bookRepository);
++        inOrder.verify(bookRepository).findBookById("1234");
++        inOrder.verify(bookRepository).save(book);
++
++    }
++
++
++    }
++
+diff --git a/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java b/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
+index bd6eae1..3e79b14 100644
+--- a/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
++++ b/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
+@@ -101,4 +101,12 @@ public class BookServiceTest {
+         bookService.addBook(bookRequest);
+ 
+     }
++
++    @Test
++    public void testSaveBookWithBookRequestWithGreaterPrice() {
++        BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
++        Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
++//		doNothing().when(bookRepository).save(book);
++        bookService.addBook(bookRequest);
++    }
+ }
+-- 
+2.41.0.windows.1
+
