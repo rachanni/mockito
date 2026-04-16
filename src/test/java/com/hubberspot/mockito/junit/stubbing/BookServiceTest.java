@@ -64,11 +64,41 @@ public class BookServiceTest {
 
 
     @Test
-    public void testSaveBook(){
+    public void testAddBook(){
 
         Book book1 = new Book(null, "Mockito In Action", 500, LocalDate.now());
-        doNothing().when(bookRepository).save(book1);
+//      here mock object -> bookRepository is calling save() method and save() method return type is void.
+//      so instead of using thenReturn() -> we are using doNothing()
+        doNothing().when(bookRepository).save(book1); // ==
         bookService.addBook(book1);
+
+    }
+
+    /*
+    *
+    * */
+
+    @Test
+    public void testAddBookWithBookRequest(){
+
+        BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
+        Book book = new Book(null, "Mockito In Action", 500, LocalDate.now()); // Book@5a6d5a8f
+//      here mock object is calling save() method on book object having hascode Book@5a6d5a8f but the moment
+//      bookService.addBook(bookRequest); executed then addBook(BookRequest bookRequest) of BookService will be
+//      called. And there also we are creating a new book object having hashCode Book@450794b4
+        /*
+        * In other word we are using save(book) method two times
+        * 1. doNothing().when(bookRepository).save(book); -> here in test method
+        * 2. bookRepository.save(book); -> Inside BookService addBook(BookRequest bookRequest) method
+        *
+        * so by default mockito use equals() method to compare these 2 object. If we don't override equals() method
+        * then Object class equals method will be used which use reference comparison.
+        * And obviously we are using two different book object. so we are getting
+        * org.mockito.exceptions.misusing.PotentialStubbingProblem
+        * so to avoid this exception -> override equals() method based on fields which satisfy the real condition.
+        * */
+        doNothing().when(bookRepository).save(book);
+        bookService.addBook(bookRequest);
 
     }
 }

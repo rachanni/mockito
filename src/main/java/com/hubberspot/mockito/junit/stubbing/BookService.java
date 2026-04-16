@@ -54,7 +54,18 @@ public class BookService {
     }
 
 
+//  return type is void
     public void addBook(Book book){
+
+        bookRepository.save(book);
+    }
+
+    public void addBook(BookRequest bookRequest){
+
+        Book book = new Book(); // Book@450794b4
+        book.setTitle(bookRequest.getTitle());
+        book.setPrice(bookRequest.getPrice());
+        book.setPublishedDate(bookRequest.getPublishedDate());
 
         bookRepository.save(book);
     }
