@@ -1,0 +1,207 @@
+From 8eee0a0ec41cf0cf67470e37d2f5dc94cd9d0a4f Mon Sep 17 00:00:00 2001
+From: "raviprabhat.tcs" <developer1-tc@uidai.net.in>
+Date: Fri, 17 Apr 2026 17:18:33 +0530
+Subject: [PATCH] 1. Detail explanation of Behaviour testing
+
+---
+ .../verification/BookRepository.java          |  3 --
+ .../behaviour/verification/BookService.java   | 14 ++++--
+ .../verification/BookServiceTest.java         | 43 ++++++++++++++++---
+ .../junit/stubbing/BookServiceTest.java       |  8 +++-
+ 4 files changed, 55 insertions(+), 13 deletions(-)
+
+diff --git a/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRepository.java b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRepository.java
+index 2486e51..f40d752 100644
+--- a/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRepository.java
++++ b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookRepository.java
+@@ -4,9 +4,6 @@ import java.util.List;
+ 
+ public interface BookRepository {
+ 
+-
+-
+-
+     void save(Book book);
+ 
+     Book findBookById(String bookId);
+diff --git a/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookService.java b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookService.java
+index 1533ca2..8d2898c 100644
+--- a/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookService.java
++++ b/src/main/java/com/hubberspot/mockito/junit/behaviour/verification/BookService.java
+@@ -12,12 +12,13 @@ public class BookService {
+ 
+ 
+ 
+-//  return type is void
++
+     public void addBook(Book book){
+ 
+-       /* if(book.getPrice() <= 500){
++        /*if(book.getPrice() <= 500){
+             return;
+         }*/
++//
+         bookRepository.save(book);
+     }
+ 
+@@ -35,14 +36,19 @@ public class BookService {
+     }
+ 
+     public void updatePrice(String bookId, int updatedPrice){
++//      In case of bookId is null then bookRepository object should not come into the picture.
+         if(bookId == null){
+             return;
+         }
++//      first interaction with mock object
+         Book book = bookRepository.findBookById(bookId);
+-       /* if(book.getPrice() == updatedPrice){
++//      if(book.getPrice() == updatedPrice) -> true ->  only one interaction with bookRepository
++//      if(book.getPrice() == updatedPrice) -> false -> then two interaction should happen with bookRepository
++        if(book.getPrice() == updatedPrice){
+             return;
+-        }*/
++        }
+         book.setPrice(updatedPrice);
++//      second interaction with mock object
+         bookRepository.save(book);
+     }
+ 
+diff --git a/src/test/java/com/hubberspot/mockito/junit/behaviour/verification/BookServiceTest.java b/src/test/java/com/hubberspot/mockito/junit/behaviour/verification/BookServiceTest.java
+index 6c97da1..c5d9285 100644
+--- a/src/test/java/com/hubberspot/mockito/junit/behaviour/verification/BookServiceTest.java
++++ b/src/test/java/com/hubberspot/mockito/junit/behaviour/verification/BookServiceTest.java
+@@ -29,6 +29,11 @@ public class BookServiceTest {
+ 
+         Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
+         bookService.addBook(book);
++//      Mockito.verify(mockObject) helps to test that actually mock object method is called or not.
++//      mockObject - bookRepository
++//      mock object method - save(book)
++//      if mock object method is not called then verify(mockObject) will fail.
++//      verify(bookRepository).save(book); is same as verify(bookRepository, times(1)).save(book);
+         verify(bookRepository).save(book);
+     }
+ 
+@@ -36,8 +41,8 @@ public class BookServiceTest {
+     public void testSaveBookWithBookRequestWithGreaterPrice() {
+         BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
+         Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
+-//		doNothing().when(bookRepository).save(book);
+         bookService.addBook(bookRequest);
++//      Testing zero interaction with mock object
+         verify(bookRepository, times(0)).save(book);
+     }
+ 
+@@ -45,9 +50,13 @@ public class BookServiceTest {
+     public void testSaveBookWithBookRequestWithGreaterPrice1() {
+         BookRequest bookRequest = new BookRequest("Mockito In Action", 600, LocalDate.now());
+         Book book = new Book(null, "Mockito In Action", 600, LocalDate.now());
+-//		doNothing().when(bookRepository).save(book);
++//      test case will fail
++//        Book book = new Book(null, "Mockito In Action", 10000, LocalDate.now());
+         bookService.addBook(bookRequest);
+         bookService.addBook(bookRequest);
++//      verify() method is not only helping to test number of interaction but it also helps to test correct object
++//      is passed.
++//      In bookRequest object keep price = 600 and in book object keep price 1000 then test will fail.
+         verify(bookRepository, times(2)).save(book);
+     }
+ 
+@@ -55,9 +64,9 @@ public class BookServiceTest {
+     public void testSaveBookWithBookRequestWithGreaterPrice2() {
+         BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
+         Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
+-//		doNothing().when(bookRepository).save(book);
+         bookService.addBook(bookRequest);
+ //      instead of using Mockito.times(0) -> better to use Mockito.never()
++//        verify(bookRepository, times(0)).save(book);
+         verify(bookRepository, never()).save(book);
+     }
+ 
+@@ -65,6 +74,8 @@ public class BookServiceTest {
+     public void testUpdatePrice(){
+ 
+         bookService.updatePrice(null, 600);
++//      As bookId is null so there should not be interaction with mock object -> bookRepository
++//      so to test no interaction scenario we can use verifyNoInteractions(mockObject) method
+         verifyNoInteractions(bookRepository);
+     }
+ 
+@@ -84,9 +95,16 @@ public class BookServiceTest {
+         Book book = new Book("1234", "Mockito In Action", 500, LocalDate.now());
+         when(bookRepository.findBookById("1234")).thenReturn(book);
+         bookService.updatePrice("1234", 500);
++//      here we are verifying mock object interacted with bookId "1234"
+         verify(bookRepository).findBookById("1234");
+-        verify(bookRepository).save(book);
++//      with bookId "89" test will fail
++//        verify(bookRepository).findBookById("89");
++
++//        As we know if(book.getPrice() == updatedPrice) -> true ->  only one interaction with bookRepository
++//        so testing no second interaction
+         verifyNoMoreInteractions(bookRepository);
++
++
+     }
+ 
+     @Test
+@@ -94,7 +112,22 @@ public class BookServiceTest {
+ 
+         Book book = new Book("1234", "Mockito In Action", 500, LocalDate.now());
+         when(bookRepository.findBookById("1234")).thenReturn(book);
+-        bookService.updatePrice("1234", 500);
++        bookService.updatePrice("1234", 600);
++//      here we are verifying mock object interacted with bookId "1234"
++        verify(bookRepository).findBookById("1234");
++//        verifying second interaction of mock object -> bookRepository.save(book);
++        verify(bookRepository).save(book);
++//        testing no more interaction after second interaction
++        verifyNoMoreInteractions(bookRepository);
++    }
++
++    @Test
++    public void testUpdatePrice5(){
++
++        Book book = new Book("1234", "Mockito In Action", 500, LocalDate.now());
++        when(bookRepository.findBookById("1234")).thenReturn(book);
++        bookService.updatePrice("1234", 600);
++//      to test the order of interaction of mock object
+         InOrder inOrder = Mockito.inOrder(bookRepository);
+         inOrder.verify(bookRepository).findBookById("1234");
+         inOrder.verify(bookRepository).save(book);
+diff --git a/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java b/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
+index 3e79b14..b15df03 100644
+--- a/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
++++ b/src/test/java/com/hubberspot/mockito/junit/stubbing/BookServiceTest.java
+@@ -83,7 +83,7 @@ public class BookServiceTest {
+ 
+         BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
+         Book book = new Book(null, "Mockito In Action", 500, LocalDate.now()); // Book@5a6d5a8f
+-//      here mock object is calling save() method on book object having hascode Book@5a6d5a8f but the moment
++//      here mock object is calling save() method on book object having hashCode Book@5a6d5a8f but the moment
+ //      bookService.addBook(bookRequest); executed then addBook(BookRequest bookRequest) of BookService will be
+ //      called. And there also we are creating a new book object having hashCode Book@450794b4
+         /*
+@@ -96,6 +96,8 @@ public class BookServiceTest {
+         * And obviously we are using two different book object. so we are getting
+         * org.mockito.exceptions.misusing.PotentialStubbingProblem
+         * so to avoid this exception -> override equals() method based on fields which satisfy the real condition.
++        * Real condition means if two book have same title, price and publishDate then we can say these 2 books are same
++        * irrespective of different bookId.
+         * */
+         doNothing().when(bookRepository).save(book);
+         bookService.addBook(bookRequest);
+@@ -107,6 +109,10 @@ public class BookServiceTest {
+         BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
+         Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
+ //		doNothing().when(bookRepository).save(book);
++//      this test case passed so we can assume service class addBook(BookRequest bookRequest) method working successfully.
++//      But in reality it does not even goes till end and terminate after executing if statement. so mock object method
++//      is not executed at all.
++//      In other words, there is no interaction with mock object method at all.
+         bookService.addBook(bookRequest);
+     }
+ }
+-- 
+2.41.0.windows.1
+
