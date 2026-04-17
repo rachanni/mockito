@@ -12,12 +12,13 @@ public class BookService {
 
 
 
-//  return type is void
+
     public void addBook(Book book){
 
-       /* if(book.getPrice() <= 500){
+        /*if(book.getPrice() <= 500){
             return;
         }*/
+//
         bookRepository.save(book);
     }
 
@@ -35,14 +36,19 @@ public class BookService {
     }
 
     public void updatePrice(String bookId, int updatedPrice){
+//      In case of bookId is null then bookRepository object should not come into the picture.
         if(bookId == null){
             return;
         }
+//      first interaction with mock object
         Book book = bookRepository.findBookById(bookId);
-       /* if(book.getPrice() == updatedPrice){
+//      if(book.getPrice() == updatedPrice) -> true ->  only one interaction with bookRepository
+//      if(book.getPrice() == updatedPrice) -> false -> then two interaction should happen with bookRepository
+        if(book.getPrice() == updatedPrice){
             return;
-        }*/
+        }
         book.setPrice(updatedPrice);
+//      second interaction with mock object
         bookRepository.save(book);
     }
 

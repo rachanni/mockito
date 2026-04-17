@@ -83,7 +83,7 @@ public class BookServiceTest {
 
         BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
         Book book = new Book(null, "Mockito In Action", 500, LocalDate.now()); // Book@5a6d5a8f
-//      here mock object is calling save() method on book object having hascode Book@5a6d5a8f but the moment
+//      here mock object is calling save() method on book object having hashCode Book@5a6d5a8f but the moment
 //      bookService.addBook(bookRequest); executed then addBook(BookRequest bookRequest) of BookService will be
 //      called. And there also we are creating a new book object having hashCode Book@450794b4
         /*
@@ -96,6 +96,8 @@ public class BookServiceTest {
         * And obviously we are using two different book object. so we are getting
         * org.mockito.exceptions.misusing.PotentialStubbingProblem
         * so to avoid this exception -> override equals() method based on fields which satisfy the real condition.
+        * Real condition means if two book have same title, price and publishDate then we can say these 2 books are same
+        * irrespective of different bookId.
         * */
         doNothing().when(bookRepository).save(book);
         bookService.addBook(bookRequest);
@@ -107,6 +109,10 @@ public class BookServiceTest {
         BookRequest bookRequest = new BookRequest("Mockito In Action", 500, LocalDate.now());
         Book book = new Book(null, "Mockito In Action", 500, LocalDate.now());
 //		doNothing().when(bookRepository).save(book);
+//      this test case passed so we can assume service class addBook(BookRequest bookRequest) method working successfully.
+//      But in reality it does not even goes till end and terminate after executing if statement. so mock object method
+//      is not executed at all.
+//      In other words, there is no interaction with mock object method at all.
         bookService.addBook(bookRequest);
     }
 }
